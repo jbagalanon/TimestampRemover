@@ -21,30 +21,45 @@ namespace TextConverter
 
         private void btnOpenFile_Click(object sender, EventArgs e)
         {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Multiselect = true;
-            openFileDialog.Filter = "SRT Files|*.srt";
-
+            openFileDialog.Filter = "SRT files|*.srt";
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                foreach (string file in openFileDialog.FileNames)
-                {
-                    string textWithoutTimestamps = RemoveTimestamps(file);
-                    SaveFile(textWithoutTimestamps, file);
-                }
+                txtSource.Text = string.Join("; ", openFileDialog.FileNames);
             }
         }
+              
 
-        private string RemoveTimestamps(string file)
+        private void btnSave_Click(object sender, EventArgs e)
         {
-            string text = File.ReadAllText(file);
-            string textWithoutTimestamps = Regex.Replace(text, @"(\d{2}:\d{2}:\d{2}[,.]\d{3}\s-->\s\d{2}:\d{2}:\d{2}[,.]\d{3}\s)", "");
-            return textWithoutTimestamps;
-        }
 
-        private void SaveFile(string text, string file)
-        {
-            string newFile = Path.ChangeExtension(file, ".txt");
-            File.WriteAllText(newFile, text);
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Text files|*.txt";
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string[] files = txtSource.Text.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                string output = "";
+
+                foreach (string file in files)
+                {
+                    string[] lines = File.ReadAllLines(file);
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        // remove timestamp and "-->"
+                        lines[i] = Regex.Replace(lines[i], @"\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}", "");
+                        // remove numbering
+                        lines[i] = Regex.Replace(lines[i], @"^\d+$", "");
+                        // remove whitespace
+                        lines[i] = lines[i].Trim();
+                    }
+                    output += string.Join("\r\n", lines.Where(x => !string.IsNullOrWhiteSpace(x)));
+                    output += "\r\n";
+                }
+                File.WriteAllText(saveFileDialog.FileName, output);
+                MessageBox.Show("File saved successfully!");
+            }
+
         }
     }
 }
