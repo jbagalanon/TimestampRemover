@@ -53,8 +53,8 @@ namespace TextConverter
                         // remove whitespace
                         lines[i] = lines[i].Trim();
                     }
-                    output += string.Join("\r\n", lines.Where(x => !string.IsNullOrWhiteSpace(x)));
-                    output += "\r\n";
+                    output += string.Join("\r\n\n", lines.Where(x => !string.IsNullOrWhiteSpace(x)));
+                    output += "\r";
                 }
                 File.WriteAllText(saveFileDialog.FileName, output);
                 MessageBox.Show("File saved successfully!");
